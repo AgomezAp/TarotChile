@@ -92,10 +92,10 @@ export const captureOrder = async (req, res) => {
 
     if (response.data.status === "COMPLETED") {
       // Pago aprobado
-      return res.redirect(`http://localhost:4200/descripcion-cartas?status=COMPLETED`);
+      return res.redirect(`https://cartastarotchile.com/descripcion-cartas?status=COMPLETED`);
     } else {
       // Pago no aprobado
-      return res.redirect(`http://localhost:4200/descripcion-cartas?status=NOT_COMPLETED`);
+      return res.redirect(`https://cartastarotchile.com/descripcion-cartas?status=NOT_COMPLETED`);
     }
   } catch (error) {
     if (error.response) {
