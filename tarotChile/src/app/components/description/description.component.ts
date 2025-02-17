@@ -14,6 +14,7 @@ import {
 } from '@angular/router';
 
 import * as CryptoJS from 'crypto-js';
+import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
 
 import { CardService } from '../../services/card.service';
@@ -44,47 +45,62 @@ export class DescriptionComponent {
   isLoading: boolean = false;
   paymentAttempted: boolean = false;
   private encryptionKey = 'U0qQ0TGufDDJqCNvQS0b795q8EZPAp9E';
-
+  token = 'DEJAELSHOW';
   constructor(private cardService: CardService, private router: Router, private route: ActivatedRoute, private http: HttpClient,) { }
 
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       const status = params['status'];
+      const token = params['token'];
       console.log('Payment Status:', status);
-      if (status === 'COMPLETED') {
-        this.isPaid = true;
-        this.paymentAttempted = true;
-        const encryptedData = localStorage.getItem('paymentData');
-        if (encryptedData) {
-          try {
-            const bytes = CryptoJS.AES.decrypt(
-              encryptedData,
-              this.encryptionKey
-            );
-            const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-            console.log('Decrypted Data:', decryptedData);
-            this.selectedCards = decryptedData.selectedCards || [];
-          } catch (e) {
-            console.error('Error al desencriptar los datos:', e);
+      console.log('Payment Token:', token);
+      if (status === 'COMPLETED' && token) {
+        try {
+          const decodedToken = jwtDecode(token) as { status: string };
+          if (decodedToken.status === 'approved') {
+            this.isPaid = true;
+            this.paymentAttempted = true;
+            const encryptedData = localStorage.getItem('paymentData');
+            if (encryptedData) {
+              try {
+                const bytes = CryptoJS.AES.decrypt(
+                  encryptedData,
+                  this.encryptionKey
+                );
+                const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+                console.log('Decrypted Data:', decryptedData);
+                this.selectedCards = decryptedData.selectedCards || [];
+              } catch (e) {
+                console.error('Error al desencriptar los datos:', e);
+              }
+            }
           }
+        } catch (e) {
+          console.error('Error al decodificar el token:', e);
         }
-      } else if (status === 'NOT_COMPLETED') {
-        this.isPaid = false;
-        this.paymentAttempted = true;  // Marca que ya se intentó el pago
-        Swal.fire({
-          title: 'Tu pago fue rechazado por el provedor',
-          text: 'Vuelve a intentarlo nuevamente o contacta a tu banco para obtener más información.',
-          icon: 'info',
-          showCancelButton: true,
-          confirmButtonText: 'Realizar Pago',
-          cancelButtonText: 'Cancelar',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            this.makePayment();
-            this.isLoading = true;
+      } else if (status === 'NOT_COMPLETED' && token) {
+        try {
+          const decodedToken = jwtDecode(token) as { status: string };
+          if (decodedToken.status === 'not_approved') {
+            this.isPaid = false;
+            this.paymentAttempted = true;  // Marca que ya se intentó el pago
+            Swal.fire({
+              title: 'Tu pago fue rechazado por el provedor',
+              text: 'Vuelve a intentarlo nuevamente o contacta a tu banco para obtener más información.',
+              icon: 'info',
+              showCancelButton: true,
+              confirmButtonText: 'Realizar Pago',
+              cancelButtonText: 'Cancelar',
+            }).then((result) => {
+              if (result.isConfirmed) {
+                this.makePayment();
+              }
+            });
           }
-        });
+        } catch (e) {
+          console.error('Error al decodificar el token:', e);
+        }
       }
     });
 
@@ -144,7 +160,7 @@ export class DescriptionComponent {
     localStorage.setItem('paymentData', encryptedData);
 
     // Realizar la solicitud al backend para crear la orden de pago
-    this.http.post<{ id: string, links: { rel: string, href: string }[] }>('https://api.cartastarotchile.com/create-order', {})
+    this.http.post<{ id: string, links: { rel: string, href: string }[] }>('http://localhost:4000/create-order', {})
       .subscribe((response) => {
         const approvalUrl = response.links.find(link => link.rel === "approve")?.href;
         if (approvalUrl) {
@@ -158,7 +174,8 @@ export class DescriptionComponent {
   }
 
   capturePayment(token: string): void {
-    this.http.get(`https://api.cartastarotchile.com/capture-order?token=${token}`)
+/*     this.http.get(`https://api.cartastarotchile.com/capture-order?token=${token}`) */
+    this.http.get(`http://localhost:4000/capture-order?token=${token}`) 
       .subscribe((response) => {
         console.log('Payment captured successfully:', response);
         this.router.navigate(['/payment-success']);
