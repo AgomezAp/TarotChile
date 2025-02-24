@@ -53,8 +53,7 @@ export class DescriptionComponent {
     this.route.queryParams.subscribe((params) => {
       const status = params['status'];
       const token = params['token'];
-      console.log('Payment Status:', status);
-      console.log('Payment Token:', token);
+
       if (status === 'COMPLETED' && token) {
         try {
           const decodedToken = jwtDecode(token) as { status: string };
@@ -174,7 +173,6 @@ export class DescriptionComponent {
   }
 
   capturePayment(token: string): void {
-/*     this.http.get(`https://api.cartastarotchile.com/capture-order?token=${token}`) */
     this.http.get(`https://api.cartastarotchile.com/capture-order?token=${token}`) 
       .subscribe((response) => {
         console.log('Payment captured successfully:', response);
