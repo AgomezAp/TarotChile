@@ -119,7 +119,7 @@ export const captureOrder = async (req, res) => {
           );
           
           return res.redirect(
-            `https://cartastarotmexico.com/descripcion-cartas?status=COMPLETED&token=${approvalToken}`
+            `https://cartastarotbolivia.com/descripcion-cartas?status=COMPLETED&token=${approvalToken}`
           );
     }
     const approvalToken = jwt.sign(
@@ -129,7 +129,7 @@ export const captureOrder = async (req, res) => {
       );
       
       return res.redirect(
-        `https://cartastarotmexico.com/descripcion-cartas?status=COMPLETED&token=${approvalToken}`
+        `https://cartastarotbolivia.com/descripcion-cartas?status=COMPLETED&token=${approvalToken}`
       );
   }
 };
