@@ -26,7 +26,7 @@ export const createOrder = async (req, res) => {
         shipping_preference: "NO_SHIPPING",
         user_action: "PAY_NOW",
         return_url: `${HOST}/capture-order`,
-        failure_url: `${HOST}/welcome`,
+        failure_url: `https://cartastarotchile.com/welcome`,
         cancel_url: `https://cartastarotchile.com/welcome`,
       },
     };
